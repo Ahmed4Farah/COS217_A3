@@ -18,7 +18,7 @@ typedef struct SymTable * SymTable_T;
 a pointer to a string (to store the key), Value, which is of type
 void * and is a pointer to the value, and psNextBinding, which points
 to another bindind - It allows the bindings to be strung together to
-form a singly-linked list */
+form a singly-linked list. */
 struct Binding {
   /* Symbol table key */
   const char * Key;
@@ -38,7 +38,7 @@ struct SymTable {
   size_t size;
 };
 
-/* drafted */
+/* The SymTable constructor */
 SymTable_T SymTable_new(void) {
   SymTable_T oSymTable;
   oSymTable = (SymTable_T) malloc(sizeof(struct SymTable));
@@ -50,26 +50,32 @@ SymTable_T SymTable_new(void) {
   return oSymTable;
 }
 
-/* drafted */
+/* The SymTable deconstructor */
 void SymTable_free(SymTable_T oSymTable) {
   struct Binding *psCurrentBinding;
   struct Binding *psNextBinding;
   assert(oSymTable != NULL);
+
+  /* We iterate through the linked list from first to last */
   for (psCurrentBinding = oSymTable->psFirstBinding;
     psCurrentBinding != NULL; psCurrentBinding = psNextBinding) {
     psNextBinding = psCurrentBinding->psNextBinding;
+
+    /* Since we create a defensive copy of the key, we have to free-up
+    the memory allocation of the key as well */
+    free((void *) psCurrentBinding->Key);
     free(psCurrentBinding);
   }
   free(oSymTable);
 }
 
-/* drafted */
+/* Implements the SymTable_getLength() function */
 size_t SymTable_getLength(SymTable_T oSymTable) {
   assert(oSymTable != NULL);
   return oSymTable->size;
 }
 
-/* drafted */
+/* Implements the SymTable_put() function */
 int SymTable_put(SymTable_T oSymTable, const char *pcKey,
 const void *pvValue) {
   struct Binding *psNewBinding;
@@ -80,17 +86,20 @@ const void *pvValue) {
     return 0;
   }
 
+  /* We make a memory allocation for the new binding and create it */
   psNewBinding = (struct Binding*) malloc(sizeof(struct Binding));
   if (psNewBinding == NULL) {
     return 0;
   }
 
+  /* We make a defensive copy of the key */
   char *keyCopy = (char *) calloc(strlen(pcKey) + 1, sizeof(char));
   if (keyCopy == NULL) {
     return 0;
   }
   keyCopy = strcpy(keyCopy, pcKey);
 
+  /* We fill the binding and add it to the front of the linked list */
   psNewBinding->Key = keyCopy;
   psNewBinding->Value = pvValue;
   psNewBinding->psNextBinding = oSymTable->psFirstBinding;
@@ -100,7 +109,11 @@ const void *pvValue) {
   return 1;
 }
 
-/* drafted */
+/* A helper function used by SymTable_replace, SymTable_contains,
+and SymTable_get. It takes in a SymTable_T oSymTable and a char * pcKey.
+If oSymTable contains a binding with the key pcKey, it returns a pointer
+to that binding. Otherwise, it returns Null. It does not change the
+contents of oSymTable */
 static struct Binding * SymTable_find(SymTable_T oSymTable,
 const char *pcKey) {
   struct Binding *psCurrentBinding;
@@ -116,7 +129,7 @@ const char *pcKey) {
   return NULL;
 }
 
-/* drafted */
+/* implements the SymTable_replace() replace function */
 void * SymTable_replace(SymTable_T oSymTable, const char *pcKey,
 const void *pvValue) {
   assert(oSymTable != NULL);
@@ -128,17 +141,19 @@ const void *pvValue) {
   }
   const void * oldValue = desiredBinding->Value;
   desiredBinding->Value = pvValue;
+
+  /* Here we have to "cast away the constness" */
   return (void *) oldValue;
 }
 
-/* drafted */
+/* implements the SymTable_replace() replace function */
 int SymTable_contains(SymTable_T oSymTable, const char *pcKey) {
   assert(oSymTable != NULL);
   assert(pcKey != NULL);
   return (SymTable_find(oSymTable, pcKey) != NULL);
 }
 
-/* drafted */
+/* implements the SymTable_get() replace function */
 void * SymTable_get(SymTable_T oSymTable, const char *pcKey) {
   assert(oSymTable != NULL);
   assert(pcKey != NULL);
@@ -149,9 +164,7 @@ void * SymTable_get(SymTable_T oSymTable, const char *pcKey) {
   return (void *) desiredBinding->Value;
 }
 
-/* drafted */
-/* we don't need to store current and previous. Instead we can
-just store previous, play around with that */
+/* implements the SymTable_remove() replace function */
 void *SymTable_remove(SymTable_T oSymTable, const char *pcKey) {
   struct Binding *psCurrentBinding;
   struct Binding *psPreviousBinding;
@@ -167,22 +180,34 @@ void *SymTable_remove(SymTable_T oSymTable, const char *pcKey) {
     psPreviousBinding = psCurrentBinding;
     psCurrentBinding = psCurrentBinding->psNextBinding;
   }
+
+  /* The case where we didn't find the binding corresponding to pcKey*/
   if (psCurrentBinding == NULL) {
     return NULL;
   }
+
+  /* The case where we did but it was the first one in the linked list
+  and hence we never updated  psPreviousBinding*/
   if (psPreviousBinding == NULL) {
     oSymTable->psFirstBinding = psCurrentBinding->psNextBinding;
   }
+
+  /* All other cases*/
   else {
     psPreviousBinding->psNextBinding = psCurrentBinding->psNextBinding;
   }
+
   toReturn = (void *) psCurrentBinding->Value;
+
+  /* Since we created a defensive copy of the key, we have to free that
+  too */
   free((void *) psCurrentBinding->Key);
   free(psCurrentBinding);
   oSymTable->size--;
   return toReturn;
 }
 
+/* implements the SymTable_map() replace function */
 void SymTable_map(SymTable_T oSymTable,
 void (*pfApply)(const char *pcKey, void *pvValue, void *pvExtra),
 const void *pvExtra) {

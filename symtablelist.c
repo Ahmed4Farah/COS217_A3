@@ -77,6 +77,7 @@ size_t SymTable_getLength(SymTable_T oSymTable) {
 int SymTable_put(SymTable_T oSymTable, const char *pcKey,
 const void *pvValue) {
   struct Binding *psNewBinding;
+  char *keyCopy;
   assert(oSymTable != NULL);
   assert(pcKey != NULL);
 
@@ -91,7 +92,7 @@ const void *pvValue) {
   }
 
   /* We make a defensive copy of the key */
-  char *keyCopy = (char *) calloc(strlen(pcKey) + 1, sizeof(char));
+  keyCopy = (char *) calloc(strlen(pcKey) + 1, sizeof(char));
   if (keyCopy == NULL) {
     return 0;
   }
@@ -130,14 +131,16 @@ const char *pcKey) {
 /* implements the SymTable_replace() replace function */
 void * SymTable_replace(SymTable_T oSymTable, const char *pcKey,
 const void *pvValue) {
+  struct Binding * desiredBinding;
+  const void * oldValue;
   assert(oSymTable != NULL);
   assert(pcKey != NULL);
 
-  struct Binding * desiredBinding = SymTable_find(oSymTable, pcKey);
+  desiredBinding = SymTable_find(oSymTable, pcKey);
   if (desiredBinding == NULL) {
     return NULL;
   }
-  const void * oldValue = desiredBinding->Value;
+  oldValue = desiredBinding->Value;
   desiredBinding->Value = pvValue;
 
   /* Here we have to "cast away the constness" */
@@ -153,9 +156,10 @@ int SymTable_contains(SymTable_T oSymTable, const char *pcKey) {
 
 /* implements the SymTable_get() replace function */
 void * SymTable_get(SymTable_T oSymTable, const char *pcKey) {
+  struct Binding * desiredBinding;
   assert(oSymTable != NULL);
   assert(pcKey != NULL);
-  struct Binding * desiredBinding = SymTable_find(oSymTable, pcKey);
+  desiredBinding = SymTable_find(oSymTable, pcKey);
   if (desiredBinding == NULL) {
     return NULL;
   }

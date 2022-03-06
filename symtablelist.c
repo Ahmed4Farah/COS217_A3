@@ -8,22 +8,31 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include "symtable.h"
 
 typedef struct SymTable * SymTable_T;
 
-/* Each item is stored in a Node. Nodes are linked to
-   form a list. */
+/* A Binding is an abstract data structure made up of 3 parts: Key,
+a pointer to a string (to store the key), Value, which is of type
+void * and is a pointer to the value, and psNextBinding, which points
+to another bindind - It allows the bindings to be strung together to
+form a singly-linked list */
 struct Binding {
+  /* Symbol table key */
   const char * Key;
+  /* Symbol table value */
   const void * Value;
+  /* The next binding  */
   struct Binding * psNextBinding;
 };
 
-/*--------------------------------------------------------------------*/
-/* A Stack structure is a "manager" structure that points to the first
-   StackNode. */
+/* This is a linked-list implementation of a symbol table. SymTable is
+an abstract data structure which has 2 fields. First, psFirstBinding,
+is a pointer to the first binding in the symbol table, and the second
+is the size, which is of type size_t, stores the size of the symbol
+table */
 struct SymTable {
   struct Binding *psFirstBinding;
   size_t size;
@@ -112,7 +121,7 @@ void * SymTable_replace(SymTable_T oSymTable, const char *pcKey,
 const void *pvValue) {
   assert(oSymTable != NULL);
   assert(pcKey != NULL);
-  assert(pvValue != NULL);
+
   struct Binding * desiredBinding = SymTable_find(oSymTable, pcKey);
   if (desiredBinding == NULL) {
     return NULL;
@@ -150,6 +159,7 @@ void *SymTable_remove(SymTable_T oSymTable, const char *pcKey) {
   assert(oSymTable != NULL);
   assert(pcKey != NULL);
   psCurrentBinding = oSymTable->psFirstBinding;
+  psPreviousBinding = NULL;
   while (psCurrentBinding != NULL) {
     if (strcmp(psCurrentBinding->Key, pcKey) == 0) {
       break;
@@ -161,12 +171,13 @@ void *SymTable_remove(SymTable_T oSymTable, const char *pcKey) {
     return NULL;
   }
   if (psPreviousBinding == NULL) {
-    oSymTable->psFirstBinding = NULL;
+    oSymTable->psFirstBinding = psCurrentBinding->psNextBinding;
   }
   else {
     psPreviousBinding->psNextBinding = psCurrentBinding->psNextBinding;
   }
   toReturn = (void *) psCurrentBinding->Value;
+  free((void *) psCurrentBinding->Key);
   free(psCurrentBinding);
   oSymTable->size--;
   return toReturn;

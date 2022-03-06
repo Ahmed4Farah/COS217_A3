@@ -502,7 +502,6 @@ static void testEmptyKey(void)
    SymTable_map(oSymTable, printBinding, "%s\t%s\n");
 
    pcValue = (char*)SymTable_remove(oSymTable, "");
-   printf("ass \n");
    ASSURE(pcValue == acShortstop);
 
    SymTable_free(oSymTable);
@@ -962,6 +961,7 @@ int main(int argc, char *argv[])
    testTableOfTables();
    testCollisions();
    testLargeTable(iBindingCount);
+
 
    printf("------------------------------------------------------\n");
    printf("End of %s.\n", argv[0]);

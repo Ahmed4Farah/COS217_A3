@@ -69,17 +69,18 @@ SymTable_T SymTable_new(void) {
   return oSymTable;
 }
 
-/* The SymTable deconstructor */
-void SymTable_free(SymTable_T oSymTable) {
-  struct Binding *psCurrentBinding;
-  struct Binding *psNextBinding;
+/* Helper function which frees up an array of pointers to bindings. It
+takes in an array of pointers to bindings (of type struct Binding **)
+called Bindings, and a size_t variable called size, which is the size
+of this array. It then frees up all the memory associated with Bindings,
+and returns nothing. It is called by SymTable_free as well as
+SymTable_expand */
+static void SymTable_free_Bindings(struct Binding ** Bindings, size_t size) {
+  struct Binding * psCurrentBinding;
+  struct Binding * psNextBinding;
   size_t hash;
-  assert(oSymTable != NULL);
-
-  /* We iterate through the buckets in order */
-  for (hash = 0; hash < SIZES[oSymTable->bucketCountOrder]; hash++) {
-    /* We then iterate through the linked list in each bucket */
-    for (psCurrentBinding = (oSymTable->Bindings)[hash];
+  for (hash = 0; hash < size; hash++){
+    for (psCurrentBinding = Bindings[hash];
       psCurrentBinding != NULL; psCurrentBinding = psNextBinding) {
       psNextBinding = psCurrentBinding->psNextBinding;
       /* Since we create a defensive copy of the key, we have to free-up
@@ -88,19 +89,14 @@ void SymTable_free(SymTable_T oSymTable) {
       free(psCurrentBinding);
     }
   }
-  /* here we free up the rest of the table */
-  free(oSymTable->Bindings);
-  free(oSymTable);
+  free(Bindings);
 }
 
-/* Implements the SymTable_getLength() function */
-size_t SymTable_getLength(SymTable_T oSymTable) {
-  assert(oSymTable != NULL);
-  return oSymTable->size;
-}
-
-/* Return a hash code for pcKey that is between 0 and uBucketCount-1,
-inclusive. */
+/* A Helper function which takes in a string, pcKey, and a size_t called
+uBucketCount, which represents the number of buckets available. It
+then returns a hash code for pcKey that is between 0 and uBucketCount-1,
+inclusive, as a size_t variable. It is called directly by
+SymTable_expand, SymTable_find, and SymTable_remove */
 static size_t SymTable_hash(const char *pcKey, size_t uBucketCount) {
   const size_t HASH_MULTIPLIER = 65599;
   size_t u;
@@ -112,41 +108,98 @@ static size_t SymTable_hash(const char *pcKey, size_t uBucketCount) {
   return uHash % uBucketCount;
 }
 
-/* Expands Bindings, the array of binding pointers that SymTable_T
-oSymTable uses. This is a helper method called by SymTable_put. It takes
-in a  SymTable_T oSymTable and has no return value. It expands the
-relevant array if it can, but returns and leaves oSymTable in operating
-condition even if it can't expand it. Expands according to the sequence
-of sizes recorded in SIZES by increasing the number of buckets by one
-level in that sequence of numbers (unless it's already reached the
-highest of them) */
+/* A Helper function which Expands Bindings, the array of binding
+pointers that SymTable_T oSymTable uses.
+It is called by SymTable_put. It takes in a SymTable_T oSymTable and
+has no return value. It expands the relevant array if it can, but
+returns and leaves oSymTable in its original condition if it can't
+expand it. Expands according to the sequence of sizes recorded in SIZES
+by increasing the number of buckets by one level in that sequence of
+numbers (unless it's already reached the highest of them) */
 static void SymTable_expand(SymTable_T oSymTable) {
-  /*
   struct Binding ** newBindings;
   struct Binding * psCurrentBinding;
   struct Binding * psNewBinding;
-
   size_t hash;
   size_t newHash;
+  char * keyCopy;
+
   assert(oSymTable != NULL);
+  /* If we've already hit this number, we don't expand any further */
+  if (SIZES[oSymTable->bucketCountOrder] == 65521){
+    return;
+  }
+
   newBindings = calloc(
-    SIZES[oSymTable->bucketCountOrder], sizeof(struct Binding *));
+    SIZES[oSymTable->bucketCountOrder + 1], sizeof(struct Binding *));
   if(newBindings == NULL) {
     return;
   }
-  for (hash = 0; hash < SIZES[oSymTable->bucketCountOrder]; hash++) {
+  for (hash = 0; hash < SIZES[oSymTable->bucketCountOrder]; hash++){
     for (psCurrentBinding = (oSymTable->Bindings)[hash];
-      psCurrentBinding != NULL;
-      psCurrentBinding = psCurrentBinding->psNextBinding) {
+    psCurrentBinding != NULL;
+    psCurrentBinding = psCurrentBinding->psNextBinding) {
+      psNewBinding = (struct Binding*) malloc(sizeof(struct Binding));
+      if (psNewBinding == NULL) {
+        SymTable_free_Bindings(newBindings, SIZES[oSymTable->bucketCountOrder + 1]);
+        return;
+      }
+      keyCopy = (char *) calloc(strlen(psCurrentBinding->Key) + 1,
+      sizeof(char));
+      if (keyCopy == NULL) {
+        free(psNewBinding);
+        SymTable_free_Bindings(newBindings, SIZES[oSymTable->bucketCountOrder + 1]);
+        return;
+      }
       newHash = SymTable_hash(psCurrentBinding->Key,
-      SIZES[oSymTable->bucketCountOrder]);
+      SIZES[oSymTable->bucketCountOrder + 1]);
+      keyCopy = strcpy(keyCopy, psCurrentBinding->Key);
+      psNewBinding->Key = keyCopy;
+      psNewBinding->Value = psCurrentBinding->Value;
+      psNewBinding->psNextBinding = newBindings[newHash];
+      newBindings[newHash] = psNewBinding;
+    }
   }
-
-
+  SymTable_free_Bindings(oSymTable->Bindings, SIZES[oSymTable->bucketCountOrder]);
+  oSymTable->Bindings = newBindings;
   oSymTable->bucketCountOrder++;
-  */
 }
 
+/* A helper function used by SymTable_replace, SymTable_contains,
+and SymTable_get. It takes in a SymTable_T oSymTable and a char * pcKey.
+If oSymTable contains a binding with the key pcKey, it returns a pointer
+to that binding. Otherwise, it returns Null. It does not change the
+contents of oSymTable */
+static struct Binding * SymTable_find(SymTable_T oSymTable,
+const char *pcKey) {
+  struct Binding *psCurrentBinding;
+  size_t hash;
+  assert(oSymTable != NULL);
+  assert(pcKey != NULL);
+  hash = SymTable_hash(pcKey, SIZES[oSymTable->bucketCountOrder]);
+  for (psCurrentBinding = (oSymTable->Bindings)[hash];
+    psCurrentBinding != NULL;
+    psCurrentBinding = psCurrentBinding->psNextBinding) {
+    if (strcmp(psCurrentBinding->Key,pcKey) == 0) {
+      return psCurrentBinding;
+    }
+  }
+  return NULL;
+}
+
+/* The SymTable deconstructor */
+void SymTable_free(SymTable_T oSymTable) {
+  assert(oSymTable != NULL);
+  SymTable_free_Bindings(oSymTable->Bindings, SIZES[oSymTable->bucketCountOrder]);
+  /* here we free up the rest of the table */
+  free(oSymTable);
+}
+
+/* Implements the SymTable_getLength() function */
+size_t SymTable_getLength(SymTable_T oSymTable) {
+  assert(oSymTable != NULL);
+  return oSymTable->size;
+}
 
 /* Implements the SymTable_put() function */
 int SymTable_put(SymTable_T oSymTable, const char *pcKey,
@@ -195,27 +248,6 @@ const void *pvValue) {
   return 1;
 }
 
-/* A helper function used by SymTable_replace, SymTable_contains,
-and SymTable_get. It takes in a SymTable_T oSymTable and a char * pcKey.
-If oSymTable contains a binding with the key pcKey, it returns a pointer
-to that binding. Otherwise, it returns Null. It does not change the
-contents of oSymTable */
-static struct Binding * SymTable_find(SymTable_T oSymTable,
-const char *pcKey) {
-  struct Binding *psCurrentBinding;
-  size_t hash;
-  assert(oSymTable != NULL);
-  assert(pcKey != NULL);
-  hash = SymTable_hash(pcKey, SIZES[oSymTable->bucketCountOrder]);
-  for (psCurrentBinding = (oSymTable->Bindings)[hash];
-    psCurrentBinding != NULL;
-    psCurrentBinding = psCurrentBinding->psNextBinding) {
-    if (strcmp(psCurrentBinding->Key,pcKey) == 0) {
-      return psCurrentBinding;
-    }
-  }
-  return NULL;
-}
 
 /* implements the SymTable_replace() replace function */
 void * SymTable_replace(SymTable_T oSymTable, const char *pcKey,

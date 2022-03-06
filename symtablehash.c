@@ -112,7 +112,14 @@ static size_t SymTable_hash(const char *pcKey, size_t uBucketCount) {
   return uHash % uBucketCount;
 }
 
-/* TB implemented */
+/* Expands Bindings, the array of binding pointers that SymTable_T
+oSymTable uses. This is a helper method called by SymTable_put. It takes
+in a  SymTable_T oSymTable and has no return value. It expands the
+relevant array if it can, but returns and leaves oSymTable in operating
+condition even if it can't expand it. Expands according to the sequence
+of sizes recorded in SIZES by increasing the number of buckets by one
+level in that sequence of numbers (unless it's already reached the
+highest of them) */
 static void SymTable_expand(SymTable_T oSymTable) {
   /*
   struct Binding ** newBindings;

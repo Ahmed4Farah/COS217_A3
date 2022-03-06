@@ -4,9 +4,9 @@ Assignment 3 readme File
 What is your name?
 
 3h (ago)
-Mar 5: 5:30pm - 7:09pm
-Mar 5: 8:17pm - 11:30
-Mar 6: 2:20am -
+Mar 5: 5:30pm - 7:09pm (1.5)
+Mar 5: 8:17pm - 11:30pm (3.15)
+Mar 6: 2:20am - 4:47am (2.5)
 
 ------------------------------------------------------------------------
 What authorized sources of information did you use to complete the
@@ -79,6 +79,14 @@ What warnings does splint generate on symtablehash.c, and what are your
 disagreements with them? Copy the splint warnings here, and express your
 disagreement after each warning. If there are no warnings, then write
 "None."
+
+symtablehash.c:308:7: Statement has no effect: pfApply(psCurren...
+Statement has no visible effect --- no values are modified.
+(Use -noeffect to inhibit warning)
+==> Same thing as for symtablelist.c
+It is true that this line has no effect on the internal structure
+of the symbol table. SymTable_map() simply applies the given function
+to all the key-value pairs. Its effect is only clear to the client.
 
 
 

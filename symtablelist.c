@@ -131,7 +131,7 @@ const char *pcKey) {
   return NULL;
 }
 
-/* implements the SymTable_replace() replace function */
+/* implements the SymTable_replace() function */
 void * SymTable_replace(SymTable_T oSymTable, const char *pcKey,
 const void *pvValue) {
   struct Binding * desiredBinding;
@@ -150,7 +150,7 @@ const void *pvValue) {
   return (void *) oldValue;
 }
 
-/* implements the SymTable_replace() replace function */
+/* implements the SymTable_contains() function */
 int SymTable_contains(SymTable_T oSymTable, const char *pcKey) {
   assert(oSymTable != NULL);
   assert(pcKey != NULL);
@@ -169,7 +169,7 @@ void * SymTable_get(SymTable_T oSymTable, const char *pcKey) {
   return (void *) desiredBinding->Value;
 }
 
-/* implements the SymTable_remove() replace function */
+/* implements the SymTable_remove() function */
 void *SymTable_remove(SymTable_T oSymTable, const char *pcKey) {
   struct Binding *psCurrentBinding;
   struct Binding *psPreviousBinding;
@@ -212,7 +212,7 @@ void *SymTable_remove(SymTable_T oSymTable, const char *pcKey) {
   return toReturn;
 }
 
-/* implements the SymTable_map() replace function */
+/* implements the SymTable_map() function */
 void SymTable_map(SymTable_T oSymTable,
 void (*pfApply)(const char *pcKey, void *pvValue, void *pvExtra),
 const void *pvExtra) {

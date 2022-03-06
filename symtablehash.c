@@ -16,6 +16,7 @@ starts out with 509 buckets, and then expands to the next size as
 needed. It does not expand any further once it hits 65521 buckets. */
 static size_t SIZES[] = {509, 1021, 2039, 4093, 8191, 16381, 32749,
 65521};
+static size_t MAX_SIZE = 65521;
 
 /* A Binding is an abstract data structure made up of 3 parts: Key,
 a pointer to a string (to store the key), Value, which is of type
@@ -75,7 +76,8 @@ called Bindings, and a size_t variable called size, which is the size
 of this array. It then frees up all the memory associated with Bindings,
 and returns nothing. It is called by SymTable_free as well as
 SymTable_expand */
-static void SymTable_free_Bindings(struct Binding ** Bindings, size_t size) {
+static void SymTable_free_Bindings(struct Binding ** Bindings,
+size_t size) {
   struct Binding * psCurrentBinding;
   struct Binding * psNextBinding;
   size_t hash;
@@ -124,31 +126,42 @@ static void SymTable_expand(SymTable_T oSymTable) {
   size_t newHash;
   char * keyCopy;
 
-  assert(oSymTable != NULL);
-  /* If we've already hit this number, we don't expand any further */
-  if (SIZES[oSymTable->bucketCountOrder] == 65521){
+  /* If we've already hit the max number of buckets,
+  we don't expand any further */
+  if (SIZES[oSymTable->bucketCountOrder] == MAX_SIZE){
     return;
   }
 
+  /* We allocate the memory for the new bindings array */
   newBindings = calloc(
     SIZES[oSymTable->bucketCountOrder + 1], sizeof(struct Binding *));
   if(newBindings == NULL) {
     return;
   }
+
+  /* We recompute the hashes for every single key (since they're gonna
+  change as we've increased the number of buckets) make a new copy of
+  each binding, and place it in the new bindings table */
   for (hash = 0; hash < SIZES[oSymTable->bucketCountOrder]; hash++){
     for (psCurrentBinding = (oSymTable->Bindings)[hash];
     psCurrentBinding != NULL;
     psCurrentBinding = psCurrentBinding->psNextBinding) {
       psNewBinding = (struct Binding*) malloc(sizeof(struct Binding));
       if (psNewBinding == NULL) {
-        SymTable_free_Bindings(newBindings, SIZES[oSymTable->bucketCountOrder + 1]);
+        /* If ever we can't allocate more memory, we have to free up
+        the entire table we just created */
+        SymTable_free_Bindings(newBindings,
+        SIZES[oSymTable->bucketCountOrder + 1]);
         return;
       }
       keyCopy = (char *) calloc(strlen(psCurrentBinding->Key) + 1,
       sizeof(char));
       if (keyCopy == NULL) {
+        /* If ever we can't allocate more memory, we have to free up
+        the entire table we just created */
         free(psNewBinding);
-        SymTable_free_Bindings(newBindings, SIZES[oSymTable->bucketCountOrder + 1]);
+        SymTable_free_Bindings(newBindings,
+        SIZES[oSymTable->bucketCountOrder + 1]);
         return;
       }
       newHash = SymTable_hash(psCurrentBinding->Key,
@@ -160,7 +173,11 @@ static void SymTable_expand(SymTable_T oSymTable) {
       newBindings[newHash] = psNewBinding;
     }
   }
-  SymTable_free_Bindings(oSymTable->Bindings, SIZES[oSymTable->bucketCountOrder]);
+  /* We free the old table */
+  SymTable_free_Bindings(oSymTable->Bindings,
+  SIZES[oSymTable->bucketCountOrder]);
+
+  /* We link the new table and increment bucketCountOrder */
   oSymTable->Bindings = newBindings;
   oSymTable->bucketCountOrder++;
 }
@@ -190,7 +207,8 @@ const char *pcKey) {
 /* The SymTable deconstructor */
 void SymTable_free(SymTable_T oSymTable) {
   assert(oSymTable != NULL);
-  SymTable_free_Bindings(oSymTable->Bindings, SIZES[oSymTable->bucketCountOrder]);
+  SymTable_free_Bindings(oSymTable->Bindings,
+  SIZES[oSymTable->bucketCountOrder]);
   /* here we free up the rest of the table */
   free(oSymTable);
 }
@@ -248,8 +266,7 @@ const void *pvValue) {
   return 1;
 }
 
-
-/* implements the SymTable_replace() replace function */
+/* implements the SymTable_replace() function */
 void * SymTable_replace(SymTable_T oSymTable, const char *pcKey,
 const void *pvValue) {
   struct Binding * desiredBinding;
@@ -268,14 +285,14 @@ const void *pvValue) {
   return (void *) oldValue;
 }
 
-/* implements the SymTable_replace() replace function */
+/* implements the SymTable_contains() function */
 int SymTable_contains(SymTable_T oSymTable, const char *pcKey) {
   assert(oSymTable != NULL);
   assert(pcKey != NULL);
   return (SymTable_find(oSymTable, pcKey) != NULL);
 }
 
-/* implements the SymTable_get() replace function */
+/* implements the SymTable_get() function */
 void * SymTable_get(SymTable_T oSymTable, const char *pcKey) {
   struct Binding * desiredBinding;
   assert(oSymTable != NULL);

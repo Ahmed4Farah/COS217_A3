@@ -10,6 +10,10 @@
 #include <string.h>
 #include "symtable.h"
 
+/* A global variable which specifies the sequence of numbers dictating
+the number of buckets our hash table will have when it expands. It
+starts out with 509 buckets, and then expands to the next size as
+needed. It does not expand any further once it hits 65521 buckets. */
 size_t SIZES[] = {509, 1021, 2039, 4093, 8191, 16381, 32749, 65521};
 
 /* A Binding is an abstract data structure made up of 3 parts: Key,
@@ -26,22 +30,25 @@ struct Binding {
   struct Binding * psNextBinding;
 };
 
-/* Code drafted */
-/* This is a linked-list implementation of a symbol table. SymTable is
-an abstract data structure which has 2 fields. First, psFirstBinding,
-is a pointer to the first binding in the symbol table, and the second
-is the size, which is of type size_t, stores the size of the symbol
-table */
+/* This is a hash-table implementation of a symbol table. SymTable is
+an abstract data structure which has 3 fields. First, Bindings is an
+array of pointers to bindings. It is realized as a variable of type
+struct Binding **. The second is the size, which is of type size_t,
+and stores the current number of elements in the symbol table. The
+third is the bucketCountOrder, and it is the index of the element in
+SIZES[] which corresponds to the current number of buckets in the
+symbol table. It starts off at 0 and is incremented by 1 for every
+expansion of Bindindgs. */
 struct SymTable {
-  /* A pointer to the first binding in the symbol table */
+  /* The buckets of the hash table. An array of pointers to bindings */
   struct Binding ** Bindings;
   /* The current size of the symbol table */
   size_t size;
-  /* The number of buckets in the symbol table */
+  /* index of the element in SIZES[] which corresponds to the current
+  number of buckets in the symbol table */
   size_t bucketCountOrder;
 };
 
-/* Code drafted */
 /* The SymTable constructor */
 SymTable_T SymTable_new(void) {
   SymTable_T oSymTable;
@@ -51,6 +58,8 @@ SymTable_T SymTable_new(void) {
   }
   oSymTable->Bindings = calloc(SIZES[0], sizeof(struct Binding *));
   if (oSymTable->Bindings == NULL) {
+    /* We must remember to free oSymTable, since we won't be actually
+    making a symbol table */
     free(oSymTable);
     return NULL;
   }
@@ -59,18 +68,17 @@ SymTable_T SymTable_new(void) {
   return oSymTable;
 }
 
-/* Code drafted */
 /* The SymTable deconstructor */
 void SymTable_free(SymTable_T oSymTable) {
   struct Binding *psCurrentBinding;
   struct Binding *psNextBinding;
-  int i;
+  int hash;
   assert(oSymTable != NULL);
 
   /* We iterate through the buckets in order */
-  for (i = 0; i < SIZES[oSymTable->bucketCountOrder]; i++) {
+  for (hash = 0; hash < SIZES[oSymTable->bucketCountOrder]; hash++) {
     /* We then iterate through the linked list in each bucket */
-    for (psCurrentBinding = (oSymTable->Bindings)[i];
+    for (psCurrentBinding = (oSymTable->Bindings)[hash];
       psCurrentBinding != NULL; psCurrentBinding = psNextBinding) {
       psNextBinding = psCurrentBinding->psNextBinding;
       /* Since we create a defensive copy of the key, we have to free-up
@@ -79,18 +87,17 @@ void SymTable_free(SymTable_T oSymTable) {
       free(psCurrentBinding);
     }
   }
+  /* here we free up the rest of the table */
   free(oSymTable->Bindings);
   free(oSymTable);
 }
 
-/* Code drafted */
 /* Implements the SymTable_getLength() function */
 size_t SymTable_getLength(SymTable_T oSymTable) {
   assert(oSymTable != NULL);
   return oSymTable->size;
 }
 
-/* DONE */
 /* Return a hash code for pcKey that is between 0 and uBucketCount-1,
 inclusive. */
 static size_t SymTable_hash(const char *pcKey, size_t uBucketCount) {
@@ -109,7 +116,6 @@ static void SymTable_expand(SymTable_T oSymTable) {
   return;
 }
 
-/* Code drafted */
 /* Implements the SymTable_put() function */
 int SymTable_put(SymTable_T oSymTable, const char *pcKey,
 const void *pvValue) {
@@ -132,19 +138,22 @@ const void *pvValue) {
   /* We make a defensive copy of the key */
   keyCopy = (char *) calloc(strlen(pcKey) + 1, sizeof(char));
   if (keyCopy == NULL) {
+    /* Since we won't be adding psNewBinding to the symbol table,
+    we must free it */
     free(psNewBinding);
     return 0;
   }
+  keyCopy = strcpy(keyCopy, pcKey);
 
   /* If we need to expand the bindings array, expand it*/
   if (oSymTable->size >= SIZES[oSymTable->bucketCountOrder]) {
     SymTable_expand(oSymTable);
   }
 
-  keyCopy = strcpy(keyCopy, pcKey);
-  /* We hash the key to get the index of where to place the Binding*/
+  /* We hash the key to get the index of where to place the binding */
   hash = SymTable_hash(pcKey, SIZES[oSymTable->bucketCountOrder]);
-  /* We fill the binding and add it to the front of the linked list */
+  /* We fill the binding and add it to the front of the linked list
+  of the corresponding bucket */
   psNewBinding->Key = keyCopy;
   psNewBinding->Value = pvValue;
   psNewBinding->psNextBinding = (oSymTable->Bindings)[hash];
@@ -154,7 +163,6 @@ const void *pvValue) {
   return 1;
 }
 
-/* Code drafted */
 /* A helper function used by SymTable_replace, SymTable_contains,
 and SymTable_get. It takes in a SymTable_T oSymTable and a char * pcKey.
 If oSymTable contains a binding with the key pcKey, it returns a pointer
@@ -177,7 +185,6 @@ const char *pcKey) {
   return NULL;
 }
 
-/* Code drafted */
 /* implements the SymTable_replace() replace function */
 void * SymTable_replace(SymTable_T oSymTable, const char *pcKey,
 const void *pvValue) {
@@ -197,7 +204,6 @@ const void *pvValue) {
   return (void *) oldValue;
 }
 
-/* Code drafted */
 /* implements the SymTable_replace() replace function */
 int SymTable_contains(SymTable_T oSymTable, const char *pcKey) {
   assert(oSymTable != NULL);
@@ -205,7 +211,6 @@ int SymTable_contains(SymTable_T oSymTable, const char *pcKey) {
   return (SymTable_find(oSymTable, pcKey) != NULL);
 }
 
-/* Code drafted */
 /* implements the SymTable_get() replace function */
 void * SymTable_get(SymTable_T oSymTable, const char *pcKey) {
   struct Binding * desiredBinding;
@@ -218,7 +223,6 @@ void * SymTable_get(SymTable_T oSymTable, const char *pcKey) {
   return (void *) desiredBinding->Value;
 }
 
-/* drafted code */
 /* implements the SymTable_remove() replace function */
 void *SymTable_remove(SymTable_T oSymTable, const char *pcKey) {
   struct Binding *psCurrentBinding;
@@ -264,7 +268,6 @@ void *SymTable_remove(SymTable_T oSymTable, const char *pcKey) {
   return toReturn;
 }
 
-/* code drafted */
 /* implements the SymTable_map() replace function */
 void SymTable_map(SymTable_T oSymTable,
 void (*pfApply)(const char *pcKey, void *pvValue, void *pvExtra),

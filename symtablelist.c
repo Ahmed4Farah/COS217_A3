@@ -94,6 +94,8 @@ const void *pvValue) {
   /* We make a defensive copy of the key */
   keyCopy = (char *) calloc(strlen(pcKey) + 1, sizeof(char));
   if (keyCopy == NULL) {
+    /* Since we won't be adding psNewBinding to the symbol table,
+    we must free it */
     free(psNewBinding);
     return 0;
   }

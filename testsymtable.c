@@ -98,7 +98,7 @@ static void testBasics(void)
    char acRightField[] = "Right Field";
 
    char acBrown[] = "Brown";
-   
+
    char *pcValue;
    int iSuccessful;
    int iFound;
@@ -154,7 +154,7 @@ static void testBasics(void)
    uLength = SymTable_getLength(oSymTable);
    ASSURE(uLength == 4);
 
-   
+
    /* Test SymTable_contains(). */
 
    iFound = SymTable_contains(oSymTable, acJeter);
@@ -194,7 +194,7 @@ static void testBasics(void)
 
    pcValue = (char*)SymTable_get(oSymTable, "Maris");
    ASSURE(pcValue == NULL);
-   
+
    /* Test SymTable_replace(). */
 
    pcValue = (char*)
@@ -231,7 +231,7 @@ static void testBasics(void)
 
    uLength = SymTable_getLength(oSymTable);
    ASSURE(uLength == 5);
- 
+
 
    /* Test SymTable_free(). */
 
@@ -502,6 +502,7 @@ static void testEmptyKey(void)
    SymTable_map(oSymTable, printBinding, "%s\t%s\n");
 
    pcValue = (char*)SymTable_remove(oSymTable, "");
+   printf("ass \n");
    ASSURE(pcValue == acShortstop);
 
    SymTable_free(oSymTable);
@@ -542,7 +543,7 @@ static void testNullValue(void)
 
    pcValue = (char*)SymTable_remove(oSymTable, "Jeter");
    ASSURE(pcValue == NULL);
-   
+
    iSuccessful = SymTable_put(oSymTable, "Mantle", acCenterField);
    ASSURE(iSuccessful);
 
@@ -560,12 +561,12 @@ static void testNullValue(void)
 
    iFound = SymTable_contains(oSymTable, "Mantle");
    ASSURE(iFound);
-   
+
    pcValue = (char*)SymTable_get(oSymTable, "Mantle");
    ASSURE(pcValue == NULL);
 
    pcValue = (char*)SymTable_remove(oSymTable, "Mantle");
-   ASSURE(pcValue == NULL);   
+   ASSURE(pcValue == NULL);
 
    SymTable_free(oSymTable);
 }
@@ -894,7 +895,7 @@ static void testLargeTable(int iBindingCount)
       free(pcValue);
       uLength--;
       uLength2 = SymTable_getLength(oSymTable);
-      ASSURE(uLength2 == uLength);  
+      ASSURE(uLength2 == uLength);
    }
 
    /* Make sure oSymTableSmall hasn't been corrupted by expansion
@@ -944,7 +945,7 @@ int main(int argc, char *argv[])
       fprintf(stderr, "bindingcount cannot be negative\n");
       exit(EXIT_FAILURE);
    }
-   
+
 #ifndef S_SPLINT_S
    setCpuTimeLimit();
 #endif

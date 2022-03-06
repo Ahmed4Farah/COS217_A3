@@ -1,3 +1,16 @@
+/*--------------------------------------------------------------------*/
+/* symtable.h                                                         */
+/* Author: Ahmed Farah                                                */
+/* Interface for a Symbol Table abstract data type (ADT)              */
+/*--------------------------------------------------------------------*/
+
+#ifndef SYMTABLE_INCLUDED
+#define SYMTABLE_INCLUDED
+
+#include <stdlib.h>
+
+typedef struct SymTable * SymTable_T;
+
 SymTable_T SymTable_new(void);
 
 void SymTable_free(SymTable_T oSymTable);
@@ -19,3 +32,5 @@ void *SymTable_remove(SymTable_T oSymTable, const char *pcKey);
 void SymTable_map(SymTable_T oSymTable,
 void (*pfApply)(const char *pcKey, void *pvValue, void *pvExtra),
 const void *pvExtra);
+
+#endif

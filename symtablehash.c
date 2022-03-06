@@ -14,7 +14,8 @@
 the number of buckets our hash table will have when it expands. It
 starts out with 509 buckets, and then expands to the next size as
 needed. It does not expand any further once it hits 65521 buckets. */
-size_t SIZES[] = {509, 1021, 2039, 4093, 8191, 16381, 32749, 65521};
+static size_t SIZES[] = {509, 1021, 2039, 4093, 8191, 16381, 32749,
+65521};
 
 /* A Binding is an abstract data structure made up of 3 parts: Key,
 a pointer to a string (to store the key), Value, which is of type

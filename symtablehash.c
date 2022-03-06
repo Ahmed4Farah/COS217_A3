@@ -72,7 +72,7 @@ SymTable_T SymTable_new(void) {
 void SymTable_free(SymTable_T oSymTable) {
   struct Binding *psCurrentBinding;
   struct Binding *psNextBinding;
-  int hash;
+  size_t hash;
   assert(oSymTable != NULL);
 
   /* We iterate through the buckets in order */
@@ -228,7 +228,7 @@ void *SymTable_remove(SymTable_T oSymTable, const char *pcKey) {
   struct Binding *psCurrentBinding;
   struct Binding *psPreviousBinding;
   void * toReturn;
-  int hash;
+  size_t hash;
   assert(oSymTable != NULL);
   assert(pcKey != NULL);
   hash = SymTable_hash(pcKey, SIZES[oSymTable->bucketCountOrder]);
@@ -273,12 +273,12 @@ void SymTable_map(SymTable_T oSymTable,
 void (*pfApply)(const char *pcKey, void *pvValue, void *pvExtra),
 const void *pvExtra) {
   struct Binding *psCurrentBinding;
-  int i;
+  size_t hash;
   assert(oSymTable != NULL);
   assert(pfApply != NULL);
 
-  for (i = 0; i < SIZES[oSymTable->bucketCountOrder]; i++) {
-    for (psCurrentBinding = (oSymTable->Bindings)[i];
+  for (hash = 0; hash < SIZES[oSymTable->bucketCountOrder]; hash++) {
+    for (psCurrentBinding = (oSymTable->Bindings)[hash];
       psCurrentBinding != NULL;
       psCurrentBinding = psCurrentBinding->psNextBinding) {
       pfApply(psCurrentBinding->Key, (void *) psCurrentBinding->Value,

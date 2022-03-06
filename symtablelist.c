@@ -12,8 +12,6 @@
 #include <string.h>
 #include "symtable.h"
 
-typedef struct SymTable * SymTable_T;
-
 /* A Binding is an abstract data structure made up of 3 parts: Key,
 a pointer to a string (to store the key), Value, which is of type
 void * and is a pointer to the value, and psNextBinding, which points

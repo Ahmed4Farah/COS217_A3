@@ -32,7 +32,9 @@ is a pointer to the first binding in the symbol table, and the second
 is the size, which is of type size_t, stores the size of the symbol
 table */
 struct SymTable {
+  /* A pointer to the first binding in the symbol table */
   struct Binding *psFirstBinding;
+  /* The current size of the symbol table */
   size_t size;
 };
 

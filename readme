@@ -3,7 +3,10 @@ Assignment 3 readme File
 ------------------------------------------------------------------------
 What is your name?
 
-
+3h (ago)
+Mar 5: 5:30pm - 7:09pm
+Mar 5: 8:17pm - 11:30
+Mar 6: 2:20am -
 
 ------------------------------------------------------------------------
 What authorized sources of information did you use to complete the
@@ -46,7 +49,12 @@ disagreements with them? Copy the splint warnings here, and express your
 disagreement after each warning. If there are no warnings, then write
 "None."
 
-
+symtablelist.c:223:5: Statement has no effect: pfApply(psCurren...
+Statement has no visible effect --- no values are modified.
+(Use -noeffect to inhibit warning)
+==> It is true that this line has no effect on the internal structure
+of the symbol table. SymTable_map() simply applies the given function
+to all the key-value pairs. Its effect is only clear to the client.
 
 ------------------------------------------------------------------------
 What warnings does critTer generate on symtablelist.c, and what are your
@@ -54,7 +62,17 @@ disagreements with them? Copy the critTer warnings here, and express
 your disagreement after each warning. If there are no warnings, then
 write "None."
 
+symtablelist.c: line 78: medium priority:
+Do you want to validate 'pvValue' through an assert?
+==> We want to allow any value for pvValue, including NULL pointers.
 
+symtablelist.c: line 133: medium priority:
+Do you want to validate 'pvValue' through an assert?
+==> We want to allow any value for pvValue, including NULL pointers.
+
+symtablelist.c: line 215: medium priority:
+Do you want to validate 'pvExtra' through an assert?
+==> We want to allow any value for pvExtra, including NULL pointers.
 
 ------------------------------------------------------------------------
 What warnings does splint generate on symtablehash.c, and what are your

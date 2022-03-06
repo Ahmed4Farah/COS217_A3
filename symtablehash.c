@@ -113,8 +113,32 @@ static size_t SymTable_hash(const char *pcKey, size_t uBucketCount) {
 
 /* TB implemented */
 static void SymTable_expand(SymTable_T oSymTable) {
-  return;
+  /*
+  struct Binding ** newBindings;
+  struct Binding * psCurrentBinding;
+  struct Binding * psNewBinding;
+
+  size_t hash;
+  size_t newHash;
+  assert(oSymTable != NULL);
+  newBindings = calloc(
+    SIZES[oSymTable->bucketCountOrder], sizeof(struct Binding *));
+  if(newBindings == NULL) {
+    return;
+  }
+  for (hash = 0; hash < SIZES[oSymTable->bucketCountOrder]; hash++) {
+    for (psCurrentBinding = (oSymTable->Bindings)[hash];
+      psCurrentBinding != NULL;
+      psCurrentBinding = psCurrentBinding->psNextBinding) {
+      newHash = SymTable_hash(psCurrentBinding->Key,
+      SIZES[oSymTable->bucketCountOrder]);
+  }
+
+
+  oSymTable->bucketCountOrder++;
+  */
 }
+
 
 /* Implements the SymTable_put() function */
 int SymTable_put(SymTable_T oSymTable, const char *pcKey,

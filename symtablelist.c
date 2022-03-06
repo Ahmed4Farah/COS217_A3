@@ -7,15 +7,13 @@
 /*--------------------------------------------------------------------*/
 
 #include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include "symtable.h"
 
 /* A Binding is an abstract data structure made up of 3 parts: Key,
 a pointer to a string (to store the key), Value, which is of type
 void * and is a pointer to the value, and psNextBinding, which points
-to another bindind - It allows the bindings to be strung together to
+to another binding - It allows the bindings to be strung together to
 form a singly-linked list. */
 struct Binding {
   /* Symbol table key */
@@ -96,6 +94,7 @@ const void *pvValue) {
   /* We make a defensive copy of the key */
   keyCopy = (char *) calloc(strlen(pcKey) + 1, sizeof(char));
   if (keyCopy == NULL) {
+    free(psNewBinding);
     return 0;
   }
   keyCopy = strcpy(keyCopy, pcKey);

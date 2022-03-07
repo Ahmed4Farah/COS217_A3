@@ -81,6 +81,9 @@ size_t size) {
   struct Binding * psCurrentBinding;
   struct Binding * psNextBinding;
   size_t hash;
+  assert(Bindings != NULL);
+  assert(size > 0);
+
   for (hash = 0; hash < size; hash++){
     for (psCurrentBinding = Bindings[hash];
       psCurrentBinding != NULL; psCurrentBinding = psNextBinding) {
@@ -104,6 +107,8 @@ static size_t SymTable_hash(const char *pcKey, size_t uBucketCount) {
   size_t u;
   size_t uHash = 0;
   assert(pcKey != NULL);
+  assert(uBucketCount > 0);
+
   for (u = 0; pcKey[u] != '\0'; u++) {
     uHash = uHash * HASH_MULTIPLIER + (size_t)pcKey[u];
   }
@@ -115,9 +120,9 @@ pointers that SymTable_T oSymTable uses.
 It is called by SymTable_put. It takes in a SymTable_T oSymTable and
 has no return value. It expands the relevant array if it can, but
 returns and leaves oSymTable in its original condition if it can't
-expand it. Expands according to the sequence of sizes recorded in SIZES
-by increasing the number of buckets by one level in that sequence of
-numbers (unless it's already reached the highest of them) */
+expand it. It exaapnds according to the sequence of sizes recorded in
+SIZES by increasing the number of buckets by one level in that sequence
+of numbers (unless it's already reached the highest of them) */
 static void SymTable_expand(SymTable_T oSymTable) {
   struct Binding ** newBindings;
   struct Binding * psCurrentBinding;
@@ -125,6 +130,7 @@ static void SymTable_expand(SymTable_T oSymTable) {
   size_t hash;
   size_t newHash;
   char * keyCopy;
+  assert(oSymTable != NULL);
 
   /* If we've already hit the max number of buckets,
   we don't expand any further */

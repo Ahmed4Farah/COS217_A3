@@ -255,11 +255,10 @@ const void *pvValue) {
   }
   keyCopy = strcpy(keyCopy, pcKey);
 
-  /* If we need to expand the bindings array, expand it
+  /* If we need to expand the bindings array, expand it */
   if (oSymTable->size >= SIZES[oSymTable->bucketCountOrder]) {
     SymTable_expand(oSymTable);
   }
-  */
 
   /* We hash the key to get the index of where to place the binding */
   hash = SymTable_hash(pcKey, SIZES[oSymTable->bucketCountOrder]);

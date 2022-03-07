@@ -16,6 +16,7 @@ starts out with 509 buckets, and then expands to the next size as
 needed. It does not expand any further once it hits 65521 buckets. */
 static size_t SIZES[] = {509, 1021, 2039, 4093, 8191, 16381, 32749,
 65521};
+/* The maximum number of buckets allowed. We won't go above this */
 static size_t MAX_SIZE = 65521;
 
 /* A Binding is an abstract data structure made up of 3 parts: Key,
@@ -254,10 +255,11 @@ const void *pvValue) {
   }
   keyCopy = strcpy(keyCopy, pcKey);
 
-  /* If we need to expand the bindings array, expand it*/
+  /* If we need to expand the bindings array, expand it
   if (oSymTable->size >= SIZES[oSymTable->bucketCountOrder]) {
     SymTable_expand(oSymTable);
   }
+  */
 
   /* We hash the key to get the index of where to place the binding */
   hash = SymTable_hash(pcKey, SIZES[oSymTable->bucketCountOrder]);

@@ -41,7 +41,7 @@ static void assure(int iSuccessful, int iLineNum)
 
 static void setCpuTimeLimit(void)
 {
-   enum {CPU_TIME_LIMIT_IN_SECONDS = 3000};
+   enum {CPU_TIME_LIMIT_IN_SECONDS = 300};
    struct rlimit sRlimit;
    sRlimit.rlim_cur = CPU_TIME_LIMIT_IN_SECONDS;
    sRlimit.rlim_max = CPU_TIME_LIMIT_IN_SECONDS;

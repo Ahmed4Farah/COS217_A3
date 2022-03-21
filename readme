@@ -16,6 +16,7 @@ COS 217 lecture materials.
 COS 217 precept materials.
 COS 217 website.
 The man pages on the armlab cluster.
+Ed forum for the course 
 
 ------------------------------------------------------------------------
 What unauthorized sources of information did you use to complete the
@@ -88,7 +89,6 @@ Statement has no visible effect --- no values are modified.
 It is true that this line has no effect on the internal structure
 of the symbol table. SymTable_map() simply applies the given function
 to all the key-value pairs. Its effect is only clear to the client.
-
 
 ------------------------------------------------------------------------
 What warnings does critTer generate on symtablehash.c, and what are your

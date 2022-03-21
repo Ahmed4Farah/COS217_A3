@@ -21,7 +21,8 @@ operations such as put, get, replace... etc. */
 SymTable_T SymTable_new(void);
 
 /* The deconstructor. Take in a SymTable_T called oSymTable and frees
-all memory associated with it. Runs in linear time */
+all memory associated with it. Doesn't return anything.
+Runs in linear time */
 void SymTable_free(SymTable_T oSymTable);
 
 /* Takes in oSymTable, of type SymTable_T, and returns its size as a

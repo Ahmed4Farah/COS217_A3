@@ -14,10 +14,8 @@
 the number of buckets our hash table will have when it expands. It
 starts out with 509 buckets, and then expands to the next size as
 needed. It does not expand any further once it hits 65521 buckets. */
-static size_t SIZES[] = {509, 1021, 2039, 4093, 8191, 16381, 32749,
-65521};
-/* The maximum number of buckets allowed. We won't go above this */
-static size_t MAX_SIZE = 65521;
+static const size_t SIZES[] = {509, 1021, 2039, 4093, 8191, 16381,
+32749, 65521};
 
 /* A Binding is an abstract data structure made up of 3 parts: Key,
 a pointer to a string (to store the key), Value, which is of type
@@ -135,7 +133,7 @@ static void SymTable_expand(SymTable_T oSymTable) {
 
   /* If we've already hit the max number of buckets,
   we don't expand any further */
-  if (SIZES[oSymTable->bucketCountOrder] == MAX_SIZE){
+  if (oSymTable->bucketCountOrder==sizeof(SIZES)/sizeof(SIZES[0] - 1)){
     return;
   }
 
